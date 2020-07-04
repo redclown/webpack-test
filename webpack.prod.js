@@ -1,131 +1,101 @@
-'use strict';
-
-const glob = require('glob');
 const path = require('path');
 const webpack = require('webpack');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin');
-
-const setMPA = () => {
-    const entry = {};
-    const htmlWebpackPlugin = [];
-
-    const entryFiles = glob.sync(path.resolve(__dirname, './src/*/index.js'));
-
-    Object.keys(entryFiles).map((index) => {
-        const entryFile = entryFiles[index];
-        const match = entryFile.match(/src\/(.*)\/index\.js/);
-        const pathName = match && match[1];
-
-        entry[pathName] = entryFile;
-        htmlWebpackPlugin.push(
-            new HtmlWebpackPlugin({
-                template: path.join(__dirname, `src/${pathName}/index.html`),
-                filename: `${pathName}.html`,
-                chunks: ['vendors', pathName],
-                inject: true,
-                minify: {
-                    html5: true,
-                    collapseWhitespace: true,
-                    preserveLineBreaks: false,
-                    minifyCSS: true,
-                    minifyJS: true,
-                    removeComments: false
-                }
-            })
-        )
-    })
-    
-    return {
-        entry,
-        htmlWebpackPlugin
-    }
-}
-
-const { entry, htmlWebpackPlugin } = setMPA();
 
 module.exports = {
-    mode: 'none',
-    entry: entry,
-    module: {
-        rules: [
-            { 
-                test: /\.js$/, 
-                use: [
-                    'babel-loader',
-                    // 'eslint-loader'
-                ] 
-            },
-            { test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'] },
-            { 
-                test: /\.less$/, 
-                use: [
-                    MiniCssExtractPlugin.loader, 
-                    'css-loader', 
-                    'postcss-loader',
-                    'less-loader'
-                ] 
-            },
-            { test: /\.(jpg|png|gif|jpeg)$/, use: [{
-                loader: 'file-loader',
-                options: {
-                    name: '[name]_[hash:8].[ext]'
-                }
-            }] },
+  mode: 'production',
+  entry: {
+    index: './src/index.js',
+    search: './src/search.js'
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name]_[chunkhash:8].bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          'css-loader'
         ]
-    },
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: '[name]_[chunkhash:8].js'
-    },
-    devServer: {
-        contentBase: './dist',
-        hot: true
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            filename: '[name]_[contenthash:8].css'
-        }),
-        new OptimizeCSSAssetsPlugin({
-            assetNameRegExp: /\.css$/g,
-            cssProcessor: require('cssnano')
-        }),
-        new CleanWebpackPlugin(),
-        // new HtmlWebpackExternalsPlugin({
-        //     externals: [
-        //         {
-        //             module: 'react',
-        //             entry: 'https://unpkg.com/react@16.13.1/umd/react.production.min.js',
-        //             global: 'React',
-        //         },{
-        //             module: 'react-dom',
-        //             entry: 'https://unpkg.com/react-dom@16/umd/react-dom.production.min.js',
-        //             global: 'ReactDom',
-        //         }
-        //     ]
-        // })
-    ].concat(htmlWebpackPlugin),
-    optimization: {
-        splitChunks: {
-            minSize: 10,
-            cacheGroups: {
-                commons: {
-                    name: 'commons',
-                    chunks: 'all',
-                    minChunks: 2
-                }
-            },
-            cacheGroups: {
-                commons: {
-                    test: /(react|react-dom)/,
-                    name: 'vendors',
-                    chunks: 'all'
-                }
+      },{
+        test: /\.less$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader
+          },
+          'css-loader',
+          'less-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: () => [
+                require('autoprefixer')
+              ]
             }
-        }
-    },
-    devtool: 'source-map'
+          }
+        ]
+      },{
+        test: /\.js$/,
+        use: [
+          'babel-loader'
+        ]
+      },{
+        test: /\.(png|jpg|jpeg|svg|gif)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: '[name]_[hash:8].[ext]'
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "plugins": [
+    new MiniCssExtractPlugin({
+      filename: '[name]_[contenthash:8].css'
+    }),
+    new OptimizeCssAssetsWebpackPlugin({
+      assetNameRegExp: /\.css$/g,
+      cssProcessor: require('cssnano')
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, 'src/index.html'),
+      filename: 'index.html',
+      chunks: ['index'],
+      inject: true,
+      minify: {
+        html5: true,
+        collapseWhitespace: true,
+        preserveLineBreaks: false,
+        minifyCSS: true,
+        minifyJS: true,
+        removeComments: false
+      }
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, 'src/search.html'),
+      filename: 'search.html',
+      chunks: ['search'],
+      inject: true,
+      minify: {
+        html5: true,
+        collapseWhitespace: true,
+        preserveLineBreaks: false,
+        minifyCSS: true,
+        minifyJS: true,
+        removeComments: false
+      }
+    }),
+    new CleanWebpackPlugin()
+  ]
 }
