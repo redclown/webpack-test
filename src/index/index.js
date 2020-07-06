@@ -1,6 +1,4 @@
 import lodash from 'lodash';
-import './color.less';
-import './iconfont.js';
 
 function component() {
   var element = document.createElement('div');
