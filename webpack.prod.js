@@ -5,6 +5,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 
@@ -20,9 +21,10 @@ const setMPA = () => {
     const pathName = match && match[1];
     
     entry[pathName] = entryFile;
+    
     htmlWebpackPlugin.push(
       new HtmlWebpackPlugin({
-        template: path.join(__dirname, `src/index/index.html`),
+        template: path.join(__dirname, `src/${pathName}/index.html`),
         filename: `${pathName}.html`,
         chunks: [pathName],
         inject: true,
@@ -106,5 +108,18 @@ module.exports = {
     }),
     new FriendlyErrorsWebpackPlugin(),
     new CleanWebpackPlugin()
-  ].concat(htmlWebpackPlugin)
+  ].concat(htmlWebpackPlugin),
+  optimization: {
+    splitChunks: {
+      minSize: 0,
+      cacheGroups: {
+        commons: {
+          test: /(react|react-dom)/,
+          name: 'vendors',
+          chunks: 'all',
+          minChunks: 2
+        }
+      }
+    }
+  }
 }

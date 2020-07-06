@@ -1,10 +1,17 @@
 import lodash from 'lodash';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-function component() {
-  var element = document.createElement('div');
-  element.innerHTML = lodash.join(['Hello', 'webpack'], ' ');
-  element.classList.add('color');
-  return element;
+class Search extends React.Component {
+  render() {
+    return (<div>
+      222222 2223 3333 iiii.
+      111111111111111111111
+    </div>);
+  }
 }
 
-document.body.appendChild(component());
+ReactDOM.render(
+  <Search />,
+  document.querySelector('#root')
+)
